@@ -1,0 +1,21 @@
+---
+title: "questionaire"
+output: html_document
+date: '2022-05-17'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Library function
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+```{r}
+url<-"https://github.com/Xuans1211/108coursenews/blob/main/data/questionaire.csv"
+?read_csv
+q_raw<-read_csv(url)
+```
+

@@ -1,0 +1,8 @@
+"0","knitr::opts_chunk$set(echo = TRUE)"
+"2","Warning message:
+"
+"2","In normalizePath(path.expand(path), winslash, mustWork) :"
+"2","
+ "
+"2"," path[1]=""C:/Users/Xuans/OneDrive/??"": 檔案名稱、目錄名稱或磁碟區標籤語法錯誤。
+"

@@ -1,7 +1,0 @@
-"0","raw<-read.ods(""smoking_original_data.ods"",sheet = 1)
-"
-"2","Warning in read.ods(""smoking_original_data.ods"", sheet = 1) :"
-"2","
- "
-"2"," read.ods will be depreciated in the next version. Use read_ods instead.
-"
