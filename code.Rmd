@@ -1,0 +1,36 @@
+---
+title: "108course"
+author: "l\f\q"
+date: '2022-05-15'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##導入要用的
+```{r}
+library(tidyverse)
+library(httr)
+library(jsonlite)
+options(stringsAsFactors = F)
+```
+##蝦皮「學習歷程檔案」關鍵詞爬蟲
+```{r}
+all.df<-tibble()
+p<-0
+while( p < 480 ){
+    url<-str_c("https://shopee.tw/api/v4/search/search_items?by=relevancy&keyword=%E5%AD%B8%E7%BF%92%E6%AD%B7%E7%A8%8B%E6%AA%94%E6%A1%88&limit=60&newest=",p,
+    "&order=desc&page_type=search&scenario=PAGE_GLOBAL_SEARCH&version=2")
+    print(p)
+    p<-p+60
+    df<-GET(url)%>%
+    content("text",encoding = "utf-8")%>%
+    fromJSON()
+    
+    all.df<-bind_rows(all.df,df$items)
+}
+saveRDS(all.df,"shopee.df.rds")
+```
+
