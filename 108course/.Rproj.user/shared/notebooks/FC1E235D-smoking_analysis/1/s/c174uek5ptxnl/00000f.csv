@@ -1,0 +1,11 @@
+"0","library(janitor)
+"
+"2","
+載入套件：‘janitor’
+
+"
+"2","下列物件被遮斷自 ‘package:stats’:
+
+    chisq.test, fisher.test
+
+"

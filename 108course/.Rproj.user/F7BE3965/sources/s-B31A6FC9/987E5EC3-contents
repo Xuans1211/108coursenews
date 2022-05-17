@@ -1,0 +1,150 @@
+---
+title: "Smoking_TW_analysis"
+output: html_document
+date: '2022-04-07'
+author: "R10342001 新聞所碩一 傅書軒"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(stringsAsFactors = FALSE)
+options(scipen = 999)
+```
+
+### All needed function
+```{r}
+library(tidyverse)
+library(readr)
+library(readxl)
+library(readODS)
+library(janitor)
+library(tibble)
+library(stringr)
+```
+
+### WGOITG story
+### 原始新聞連結
+[美國原始新聞連結](https://www.nytimes.com/2021/02/25/learning/whats-going-on-in-this-graph-smoking-income.html)  
+
+![](https://static01.nyt.com/images/2021/02/25/learning/SmokingIncomeGraphLN/SmokingIncomeGraphLN-superJumbo.png?quality=75&auto=webp)  
+
+### 資料敘事方法
+這則新聞的圖表僅有一張，就是以**長條圖(橫向)**呈現各家庭年收入層人口的吸菸比率為何，並且在每組的值上有數字標記吸菸人口比率的具體數字(eg.21%)。  
+視覺上為了凸顯**最貧困**的族群，吸菸的比率是最高的，所以將該值標記為亮黃色，其他組別的值則以灰色呈現。  
+
+[美國資料原始連結](https://www.cdc.gov/mmwr/volumes/69/wr/pdfs/mm6946a4-H.pdf)  
+
+### Importing and cleaning data  
+[台灣資料原始連結](https://docs.google.com/spreadsheets/d/1Oiu7Zr6mffAgL_84XKZhaf4tmkFB5f80Ho9QtTT-80A/edit#gid=0)  
+由於台灣的原始資料是已發布型態，不好讀檔。  
+*raw*是第一頁工作表的原始資料，*cleaned*是第一頁工作表的收入部分，且我把右邊用不到的性別資料刪掉了。  
+台灣統計的吸菸資料與美國統計的類目大同小異。  
+- 相同的部分包含：性別、年齡、收入、教育程度、婚姻狀態等，且兩者型態都是已發布資料。  
+- 不同的部分包含：美國有統計性向&種族&健保範圍等；台灣是有統計原住民，且有各縣市詳細資料。
+
+
+```{r include=TRUE}
+raw<-read.ods("smoking_original_data.ods",sheet = 1)
+raw[3,]<-lag(as.vector(unlist(raw[3,])))
+
+cleaned <- raw %>%
+  slice(c(3,25:30)) %>%
+  select(1:17) %>%
+  row_to_names(1) %>%
+  rename(income = 1) %>%
+  gather("year","perc",2:ncol(.)) %>%
+  mutate(year=as.numeric(str_replace(year,"年",""))+1911,
+            perc=as.numeric(perc),income=factor(income,levels=c("20,000元以下","20,001-40,000元","40,001-60,000元","60,001-80,000元","80,001-100,000元","100,001元以上")))
+```
+
+### Pivot analysis  
+基本上原始資料都已經整理得蠻好的了，已經是年度x收入的樞紐分析表，所以我這裡就選用民國93年的資料作為練習。  
+我將各縣市重新分組，來找找看看台灣**北、中、南、東、外島**四區的吸菸率是否有所不同。  
+最終的結果顯示，民國93年台灣各區都約有20%左右的人口會吸菸，且南部的人吸菸的比率是最低的。
+```{r include=TRUE}
+raw2<-read_ods("smoking_original_data.ods",sheet = 2) %>%
+  select(county=1,
+         sample_size=2%>%as.numeric(),
+         smoking_per=3%>%as.numeric()) %>%
+  slice(42:66)
+raw2[,2]<-as.numeric(raw2[,2])
+
+(pivot_region<-raw2%>%mutate(
+  smoking_pop=round(smoking_per*sample_size*0.01),
+  region=if_else(county %in% c("台北市","台北縣","宜蘭縣","新竹縣","基隆市","新竹市","桃園縣"),"北部",
+          if_else(
+    county %in% c("台中市","台中縣","苗栗縣","彰化縣","雲林縣","南投縣"),"中部",if_else(
+      county%in%c("台南市","屏東縣","高雄縣","嘉義市","高雄市","台南縣","嘉義縣"),"南部",if_else(
+        county%in%c("花蓮縣","台東縣"),"東部","離島"))))
+) %>%
+  group_by(region) %>%
+  summarize(avg_smoking=sum(smoking_pop)/sum(sample_size)))
+
+```
+
+### Plot_0 : Smoking x income in 2020
+```{r}
+df_2019<-cleaned %>%
+  filter(year==2020) %>%
+  mutate(percentage = str_c(round(perc),"%"))
+
+(P0<-df_2019 %>%
+  ggplot(aes(x=income,y=perc,fill=income))+
+  geom_bar(stat = "identity",width = 0.7)+
+  geom_text(aes(label=percentage),hjust=1.2,size=5)+
+  coord_flip()+
+  labs(title="各家庭月收入民眾之吸菸率",
+       caption= "資料來源：衛生福利部國民健康署「國人吸菸行為調查」",x=NULL,y=NULL)+
+  theme(
+    legend.position = "none",
+    plot.title= element_text(hjust=0.5,face="bold"),
+    panel.grid.major = element_blank(),
+    panel.background = element_blank(),
+    axis.text.y = element_text(hjust = 1.4,margin=margin(r=0,l=0),size=10),
+    axis.title.y = element_text(angle=0),
+    axis.ticks = element_blank(),
+    axis.text.x = element_blank(),
+    aspect.ratio = 1.5/2.5
+  )+
+  scale_fill_manual(values=c("#E0E0E0","#E0E0E0","#E0E0E0","#E0E0E0","#E0E0E0","#FFE66F")))
+
+```
+  
+<span style = "color:coral;font-weight:bold">Plot_0：圖表說明</span>   
+台灣吸菸率的資料跟美國很不一樣。美國人的吸菸率是**越窮的人越可能吸菸**；然而，台灣卻是**越有錢的人越可能吸菸**。兩者呈現鮮明的對比。  
+具體原因可能得向專家請教、做更深入的研究，才有機會了解兩國吸菸的狀況為何相反。
+
+### Plot_1 : Smoking x income change by year  
+```{r}
+(P1<-cleaned %>%    
+    ggplot() + aes(year, perc, color = income) + 
+    geom_line(lwd=0.7) +
+    geom_point()+
+    ylim(8,30)+
+    labs(x=NULL,y="Percentage(%)",color="家庭月收入",
+         title="各家庭月收入民眾吸菸率之歷年變化",
+         caption= "資料來源：衛生福利部國民健康署「國人吸菸行為調查」")+
+    theme_bw()+
+    theme(legend.text = element_text(size=10),
+          plot.title = element_text(hjust = 0.5),
+          panel.grid.major.y=element_blank(),
+          panel.background = element_blank(),
+          aspect.ratio = 1.5/2))+
+  scale_color_manual(values=c("#E0E0E0","#E0E0E0","#E0E0E0","#E0E0E0","#E0E0E0","#FFE66F"))
+
+```
+  
+<span style = "color:coral;font-weight:bold">Plot_1：圖表說明</span>    
+我自己額外做了一個歷年各收入族群的吸菸率變化圖表。  
+在此之中，**家庭月收入100,000**以上的族群，幾乎都比其他收入族群吸菸率來得高。  
+
+但值得注意到的是，整體各族群的吸菸率是逐年下降的，可能與近年來菸害防制與國民健康意識有關。  
+
+
+### Saving
+```{r }
+saveRDS(cleaned,file="r10342001_cleaned.rds")
+saveRDS(raw,file="r10342001_raw.rds")
+save.image(file="0407backup.RData")
+```
+
