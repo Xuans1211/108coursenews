@@ -3,7 +3,7 @@
     "path": "D:/desktop/Graduate School/110-2/data_R/108coursenews/plot_template.R",
     "project_path": "plot_template.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "536268515",
     "contents": "",
     "dirty": false,
     "created": 1652842402469.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "1,17",
+        "cursorPosition": "9,21",
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1652790729,
+    "lastKnownWriteTime": 1652888448,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1652790729,
+    "last_content_update": 1652888448628,
     "read_only": false,
     "read_only_alternatives": []
 }
