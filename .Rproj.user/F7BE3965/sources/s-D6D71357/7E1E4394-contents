@@ -20,7 +20,9 @@ url<-"https://raw.githubusercontent.com/Xuans1211/108coursenews/main/data/questi
 q_raw<-read_csv(url) 
 #rename
 colnames<-read.csv("colnames.csv")
-colnames(q_raw)<-colnames$name
+p1<-colnames$name
+saveRDS(p1,"p2.RDS")
+colnames(q_raw)<-p2
 #這段是改欄位名，編碼表在"colnames.csv"裡面有
 
 clean_df <-q_raw %>%
