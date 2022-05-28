@@ -19,9 +19,6 @@ library(stringr)
 url<-"https://raw.githubusercontent.com/Xuans1211/108coursenews/main/data/questionaire.csv"
 q_raw<-read_csv(url) 
 #rename
-colnames<-read.csv("colnames.csv")
-p1<-colnames$name
-saveRDS(p1,"p2.RDS")
 colnames(q_raw)<-p2
 #這段是改欄位名，編碼表在"colnames.csv"裡面有
 
@@ -40,6 +37,13 @@ clean_df <-q_raw %>%
 ```
 
 #Elective Subjects  
+
+#困擾者x自願參與活動
+困擾者=有點困擾+很多困擾
+不困擾者=普通+很少+幾乎不困擾
+
+#態度
+attitude_now=中立、支持+非常支持、排斥+非常不支持
 
 #### 多元選修x年級 
 ```{r}
