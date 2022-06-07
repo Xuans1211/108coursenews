@@ -1,6 +1,0 @@
-"0","temp%>%
-    recode_factor(temp$edge_act%>%as.vector(),""非常不同意""=1,""不同意""=2,""普通""=3,""同意""=4,""非常同意""=5)%>%as.numeric()%>%view
-"
-"2","Error in UseMethod(""recode"") : 
-  no applicable method for 'recode' applied to an object of class ""c('tbl_df', 'tbl', 'data.frame')""
-"
