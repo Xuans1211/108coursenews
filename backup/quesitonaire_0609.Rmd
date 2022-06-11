@@ -1,0 +1,132 @@
+---
+title: "questionaire"
+output: html_document
+date: '2022-05-17'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Library function
+```{r}
+library(tidyverse)
+library(readr)
+library(stringr)
+```
+
+#Loadind raw data  
+```{r}
+url<-"https://raw.githubusercontent.com/Xuans1211/108coursenews/main/data/questionaire.csv"
+q_raw<-read_csv(url) 
+#rename
+names(q_raw) <- c("spend_time","n_learning","n_performance","app","app_other","freq_teacher","freq_student","freq_parent","freq_cram","help_teacher","help_student","help_parent","help_cram","heard_agency","use_agency","agg_overral","agg_feature","agg_quality","agg_outoftest","agg_future","agg_description","edge_course","edge_act","edge_future","edge_art","edge_outoftest","annoy_overral","annoy_time","annoy_orientation","annoy_lackoftime","annoy_docsize","annoy_description","attitude_before","attitude_now","attitude_description","focus_self","focus_professor","course_n","course_type","act_type","act","act_source","act_source_other","willingness","willingness_other","school","school_type","grade","grade_other","gender","cram_school","cram_spend","cram_subject","email","55","56","57","58","59","60","61","62","63")
+#這段是改欄位名
+clean_df <-q_raw %>%
+    select(spend_time:cram_subject)%>%
+    filter(!str_detect(school,"大學"))%>%
+    mutate(id=row_number())%>%
+    relocate(id)%>%
+    mutate(app=if_else(app=="其他",app_other,app),
+           act_source=if_else(act_source=="其他",act_source_other,act_source),
+           willingness=if_else(willingness=="其他",willingness_other,willingness)
+           )%>%
+    select(-c(app_other,act_source_other,willingness_other,grade_other))
+    #上面這段在處理合併"其他"這個欄位的資料
+
+```
+
+#人數：支持13、中立89、排斥122；困擾者：192，不困擾者：32。#轉支持者30，排斥者47，維持者147
+
+#困擾者(1.500)與不困擾者(1.526)修習的選修課數差異不大
+#支持者(1.846)，中立者(1.59)，排斥者(1.43)選修課數
+
+## 
+```{r}
+d3<-clean_df %>%
+    mutate(annoyed_group=if_else(annoy_overral=="很多困擾"|annoy_overral=="有點困擾","困擾者","不困擾者"),
+           attitude_group=if_else(attitude_now=="非常排斥"|attitude_now=="排斥","排斥者",if_else(attitude_now=="中立","中立者","支持者")))%>%
+    select(annoyed_group,attitude_group,course_n:cram_subject)%>%
+    mutate(course_n=str_sub(course_n,1,1)%>%as.numeric())%>%
+    group_by(attitude_group)%>%
+    summarise(avg_cn=mean(course_n))%>%
+    ungroup()%>%
+    ggplot()+aes(x=attitude_group,y=avg_cn,fill=attitude_group)+geom_col()+
+    ylim(c(0,4))
+d3
+```
+
+#### 多元選修x年級 
+
+
+#剔除掉其他後，
+```{r}
+library(ggpubr)
+act_df<-clean_df %>%
+    select(id,act_type,grade)%>% 
+    filter(!str_detect(act_type,"無參與"))%>%
+    mutate(技藝補習=str_detect(act_type,"技藝補習"),
+               考證照=str_detect(act_type,"考證照"),
+        參加社團=str_detect(act_type,"參加社團"),
+        參加競賽=str_detect(act_type,"參加競賽"),
+        `參加營隊、校外工作坊`=str_detect(act_type,"參加營隊、校外工作坊"),其他=str_detect(act_type,"其他"))%>%
+    gather(act_type,n,技藝補習,考證照,參加競賽,參加社團,`參加營隊、校外工作坊`,其他)
+
+g1<-act_df%>%
+    filter(grade=="一年級")%>%
+    group_by(act_type)%>%
+    summarise(total_n=sum(n))%>%
+    mutate(per_n=total_n/sum(total_n))%>%
+    ggplot()+aes(x=reorder(act_type,-per_n),y=per_n,fill=act_type)+
+    geom_col(position=position_dodge())+
+    labs(title="參與課外活動情況（高一）：",caption="資料來源",x=NULL,y="參與比例")+
+    labs(x=NULL,y="參與比例")+my_theme
+g2<-act_df%>%
+    filter(grade=="二年級")%>%
+    group_by(act_type)%>%
+    summarise(total_n=sum(n))%>%
+    mutate(per_n=total_n/sum(total_n))%>%
+    ggplot()+aes(x=reorder(act_type,-per_n),y=per_n,fill=act_type)+
+    geom_col(position=position_dodge())+
+    labs(title="參與課外活動情況（高二）：",caption="資料來源",x=NULL,y="參與比例")+
+    labs(x=NULL,y="參與比例")+my_theme
+
+g3<-act_df%>%
+    filter(grade=="三年級")%>%
+    group_by(act_type)%>%
+    summarise(total_n=sum(n))%>%
+    mutate(per_n=total_n/sum(total_n))%>%
+    ggplot()+aes(x=reorder(act_type,-per_n),y=per_n,fill=act_type)+
+    geom_col(position=position_dodge())
+
+g3
+
+my_theme<-theme(
+      legend.position = "none",
+      plot.title= element_text(hjust=0.5,face="bold"),
+      plot.caption = element_text(hjust=0.5,face="bold"),
+      panel.grid.major = element_blank(),
+      panel.background = element_blank(),
+      axis.text.y = element_text(hjust = 1.4,margin=margin(r=0,l=0),size=10),
+      axis.title.y = element_text(angle=0),
+      axis.ticks = element_blank(),
+      aspect.ratio = 1.5/2.5,
+      panel.border = element_rect(colour = "black", fill=NA, size=1)
+    )
+
+
+png(filename = "g3.png",width=1200,height = 1000,units = "px",res = 300)
+g3
+while (!is.null(dev.list()))  dev.off()
+dev.set(dev.next())
+ggarrange(g1,g2,g3,ncol = 2, nrow = 2)
+
+```
+
+
+
+#Saving
+這裡把它取消註解就可以拿來存製作紀錄備份
+```{r}
+save.image(file="doc_name.Rdata")
+```
+

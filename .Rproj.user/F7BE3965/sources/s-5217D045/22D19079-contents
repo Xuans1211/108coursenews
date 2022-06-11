@@ -1,0 +1,195 @@
+library(tibble)
+library(scales)
+library(ggplot2)
+library(rtweet)
+library(dplyr)
+library(stringr)
+library(wordcloud)
+library(RColorBrewer)
+appname <-"Xuans"
+consumer_key<-"FAPtpZ0zWCVpMuz4EXjLRYG1m"
+consumer_secret <- "0qt9FL8zSPOa3DXFn38CgvjosFtkrKwdQmXOcWbDdrdohvqHoZ"
+access_token <- "1493136018651770881-rnC9cp1o2aCONh1wljPWxzRpCvG3pY"
+access_secret <- "JG0EJBsQAnO1IUqLN29QLMogGmp4WWlgFr0UCc6S3ipjS"
+
+appname2 <-"Research xyz"
+consumer_key2<-"uvPCuwBC20dOEmINbs1VBFXhH"
+consumer_secret2 <- "lQWlcNW2JX9Vwnp2T7eXKKodI8oNZn57JlpeMztBdhxHmFXWBi"
+access_token2 <- "1493136018651770881-7ihN6lRv1BnB2jjtvt4ahc7X39jbIW"
+access_secret2 <- "fTZa2lC2HYO1SdSUDOhLvfwWey97kzMxKzMmbIKB04dXl"
+
+## create token named "twitter_token"
+twitter_token <- create_token(
+  app = appname,
+  consumer_key = consumer_key,
+  consumer_secret = consumer_secret,
+  access_token = access_token,
+  access_secret = access_secret
+)
+twitter_token2 <- create_token(
+  app = appname2,
+  consumer_key = consumer_key2,
+  consumer_secret = consumer_secret2,
+  access_token = access_token2,
+  access_secret = access_secret2
+)
+## save the token - then you can copy it to a different environment
+save(twitter_token, file="twitter_token.RData")
+save(twitter_token2, file="twitter_token2.RData")
+options(digits=1)
+
+#Collecting and filtering data
+gf_df <- search_tweets("gamefi" , type = "recent", include_rts = F,token=twitter_token2, n=15000)
+gf_df <- gf_df[!duplicated(gf_df$text,fromLast=T),]
+gf_df <- gf_df[order(gf_df$created_at, decreasing = T), ]
+unique_user <- gf_df[!duplicated(gf_df[ ,"user_id"], fromLast = TRUE), c("user_id","created_at","lang","text")]
+count(gf_df[duplicated(gf_df$text,fromLast=T),])
+
+game_df <- search_tweets("playtoearn" , type = "recent", include_rts = F,token=twitter_token, n=15000)
+game_df <- game_df[!duplicated(game_df$text,fromLast=T),]
+game_df <- game_df[order(game_df$created_at, decreasing = T), ]
+unique_user_game <- game_df[!duplicated(game_df[ ,"user_id"], fromLast = TRUE), c("user_id","created_at","lang","text")]
+count(game_df[duplicated(game_df$text,fromLast=T),])
+
+
+#To draw plot1 :Language Distribution using "gamefi"
+gf_lang <- table_df(unique_user$lang)
+gf_lang$data_vector<"lang"
+gf_lang2<-select(gf_lang,lang=data_vector,Freq)
+gf_lang2<-filter(gf_lang2,Freq>20)
+gf_lang2[nrow(gf_lang2)+1,"lang"]<-"others"
+gf_lang2[nrow(gf_lang2),"Freq"]<-sum(gf_lang[!gf_lang$data_vector %in% c("en","und","ja","zh","es","fr","pt","tr"),]$Freq)
+gf_lang2$lang<-factor(gf_lang2$lang, levels=unique(gf_lang2$lang))
+gf_lang2<-mutate(gf_lang2,per=as.character(round(Freq/sum(Freq)*100)),percentage=round(Freq/sum(Freq)*100))
+gf_lang2$per<-str_c(gf_lang2$per,"%")
+
+class(gf_lang2$per)
+
+#version1
+y_max <- max(gf_lang2$Freq) + 240
+y_step <- 1000
+(g1<-ggplot(data=gf_lang2, aes(x = lang, y= Freq)) +
+  geom_bar(
+    stat="identity",
+    fill="#a2d2ff",size=0.3,width=0.6)+
+  theme_minimal()+
+  labs(
+    x=NULL, y="Users",
+    title ="Language Distribution",
+    subtitle = "Users of languages in tweets with 'gamefi'",
+    caption = "\nSource: Data collected from Twitter's REST API via rtweet") +
+  theme(
+    axis.text.x=element_text(size=10),
+    axis.text.y=element_text(size=6,hjust=1.6),
+    plot.title = element_text(hjust = 0.5,size=16),
+    plot.subtitle =element_text(hjust = 0.5,size=8),
+    plot.caption = element_text(hjust = 0.5,size=8),
+    axis.title.y=element_text(size=10))+
+  scale_y_continuous(limits = c(0,y_max), expand=c(0,0), breaks = seq(from= 0, to = y_max, by = y_step))+
+  geom_text(aes(label=per),vjust=-0.25,size=3))
+
+png(filename = "Language Distribution_1.png",width=1200,height = 1000,units = "px",res = 300)
+g1
+dev.off()
+
+#version2
+y_max2 <- max(gf_lang2$percentage) + 22
+y_step2 <- 20
+g2<-ggplot(data=gf_lang2, aes(x = lang, y= percentage)) +
+  geom_bar(stat="identity",fill="#a2d2ff",size=0.3,width = 0.6)+
+  theme_minimal()+
+  labs(
+    x=NULL, y="Percentage(%)",
+    title ="Language Distribution",
+    subtitle = "Proportion of languages in tweets with 'gamefi'",
+    caption = "\nSource: Data collected from Twitter's REST API via rtweet") +
+  theme(
+    axis.text.x=element_text(size=10),
+    axis.text.y=element_text(size=6,hjust=1.6),
+    plot.title = element_text(hjust = 0.5,size=16),
+    plot.subtitle =element_text(hjust = 0.5,size=8),
+    plot.caption = element_text(hjust = 0.5,size=8),
+    axis.title.y=element_text(size=10))+
+  scale_y_continuous(limits = c(0,y_max2), expand=c(0,0), breaks = seq(from= 0, to = y_max2, by = y_step2))+
+  geom_text(aes(label=Freq),vjust=-0.25,size=3)
+g2
+
+png(filename = "Language Distribution_2.png",width=1200,height = 1000,units = "px",res = 300)
+g2
+dev.off()
+
+#time-series plot
+gf_df$keyword <- "gamefi"
+game_df$keyword <- "playtoearn"
+gf_game_df <- rbind(gf_df, game_df)
+Sys.timezone(location = TRUE)
+gf_game_filtered <- gf_game_df[gf_game_df$created_at > as.POSIXct('2022-03-15 15:00:00', tz = "Asia/Taipei")&gf_game_df$created_at < as.POSIXct('2022-03-16 16:00:00', tz = "Asia/Taipei"), ]
+gf_game_filtered <- select(gf_game_filtered,created_at,keyword)
+(g3<-ts_plot(
+  group_by(gf_game_filtered, keyword) , 
+  "1 hour",
+  lwd=0.7,
+  )+
+  scale_x_datetime(date_breaks = "3 hour", labels = date_format("%m/%d %H:%M", tz = "Asia/Taipei")) +
+  theme_minimal() +
+  theme(
+    axis.text.x=element_text(size=6,angle = 90,hjust = 1, vjust=0.5),
+    axis.text.y=element_text(size=6,hjust=1.6),
+    plot.title = element_text(hjust = 0.5,size=12),
+    plot.subtitle =element_text(hjust = 0.5,size=8),
+    plot.caption = element_text(hjust = 0.5,size=8),
+    axis.title.y=element_text(size=10))+
+  labs(
+    x = NULL, y = "amount of tweets",
+    title = "Comparison between gamefi and play to earn",
+    subtitle = "Tweet counts aggregated using 3hour intervals",
+    caption = "\nSource: Data collected from Twitter's REST API via rtweet")) 
+
+png(filename = "Comparison.png",width=1600,height = 1000,units = "px",res = 300)
+g3
+dev.off()
+
+# create a word cloud 
+tweetshashtag_df <- gf_df[,c("text","screen_name")]
+Sys.setlocale(category="LC_ALL", locale="Chinese")
+
+hashtags <- str_extract_all(tweetshashtag_df$text, "#\\w+")
+hashtags <- unlist(hashtags)
+hashtags <- tolower(hashtags)
+hashtags_df <- table_df(hashtags)
+head(hashtags_df)
+
+pal <- brewer.pal(9,"YlOrRd")
+pal <- pal[9:1]
+
+jpeg("plot_wordcloud_dark.jpeg", width = 1200, height = 1200, units = 'px', res = 300)
+
+par(bg = 'black')
+wordcloud(words=hashtags_df[1:50,1], freq=hashtags_df[1:50,2], random.order=F,
+          colors =  pal) 
+dev.off()
+
+# assess the correlation between favorite_count and retweet_count
+fart_df<-select(gf_df,status_id,favorite_count,retweet_count)
+ggplot(fart_df, aes(x = favorite_count, y = retweet_count)) +  # define variables
+  geom_point() 
+fart_df2<-fart_df[fart_df$retweet_count<4000,]
+g5<-ggplot(fart_df2, aes(x = favorite_count, y = retweet_count)) +  # define variables
+  geom_point(size=0.5)+
+  geom_smooth(method=lm,lwd=0.7,color="#a2d2ff")+
+  theme_minimal() +
+  theme(
+    axis.text.x=element_text(size=6, vjust=0.5),
+    axis.text.y=element_text(size=6,hjust=1.6),
+    plot.title = element_text(hjust = 0.5,size=12),
+    plot.caption = element_text(hjust = 0.5,size=8),
+    axis.title.y=element_text(size=10))+
+  labs( title = "Correlation between favorite and retweet",
+        caption = "\nSource: Data collected from Twitter's REST API via rtweet")
+g5
+png(filename = "Correlation.png",width=1600,height = 1000,units = "px",res = 300)
+g5
+dev.off()
+
+# let's calculate the regression model
+summary(lm(favorite_count ~ retweet_count, data=fart_df))

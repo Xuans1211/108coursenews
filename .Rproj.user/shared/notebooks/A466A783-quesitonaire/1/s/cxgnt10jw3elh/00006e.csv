@@ -1,0 +1,56 @@
+"0","q_raw<-read_csv(url) 
+"
+"2","New names:
+* 其他 -> 其他...5
+* 其他 -> 其他...43
+* 其他 -> 其他...45
+* 其他 -> 其他...49
+"
+"1","[1mRows: [22m[34m233[39m [1mColumns: [22m[34m63[39m
+"
+"1","[36m--[39m [1mColumn specification[22m [36m------------------------------------------------[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m  (54): 您平均一週花在【製作】學習歷程檔案的時間是？, 您每個學期平均要上傳多少份學習歷程檔案（學習成果）？, 您每個學期...
+[32mdbl[39m   (2): 您身邊有幾個同學/朋友使用過【代操/代製學習歷程檔案】相關服務？, 填答秒數...
+[33mlgl[39m   (6): 其他...49, 額滿結束註記, 使用者紀錄, 會員時間, 自訂ID, 備註
+[34mdttm[39m  (1): 填答時間
+"
+"1","
+[36mi[39m Use `spec()` to retrieve the full column specification for this data.
+[36mi[39m Specify the column types or set `show_col_types = FALSE` to quiet this message.
+"
+"0","q_raw<-read_csv(url) "
+"2","New names:
+* 其他 -> 其他...5
+* 其他 -> 其他...43
+* 其他 -> 其他...45
+* 其他 -> 其他...49
+"
+"1","[1mRows: [22m[34m233[39m [1mColumns: [22m[34m63[39m
+"
+"1","[36m--[39m [1mColumn specification[22m [36m------------------------------------------------[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m  (54): 您平均一週花在【製作】學習歷程檔案的時間是？, 您每個學期平均要上傳多少份學習歷程檔案（學習成果）？, 您每個學期...
+[32mdbl[39m   (2): 您身邊有幾個同學/朋友使用過【代操/代製學習歷程檔案】相關服務？, 填答秒數...
+[33mlgl[39m   (6): 其他...49, 額滿結束註記, 使用者紀錄, 會員時間, 自訂ID, 備註
+[34mdttm[39m  (1): 填答時間
+"
+"1","
+[36mi[39m Use `spec()` to retrieve the full column specification for this data.
+[36mi[39m Specify the column types or set `show_col_types = FALSE` to quiet this message.
+"
+"0","#rename"
+"0","names(q_raw) <- c(""spend_time"",""n_learning"",""n_performance"",""app"",""app_other"",""freq_teacher"",""freq_student"",""freq_parent"",""freq_cram"",""help_teacher"",""help_student"",""help_parent"",""help_cram"",""heard_agency"",""use_agency"",""agg_overral"",""agg_feature"",""agg_quality"",""agg_outoftest"",""agg_future"",""agg_description"",""edge_course"",""edge_act"",""edge_future"",""edge_art"",""edge_outoftest"",""annoy_overral"",""annoy_time"",""annoy_orientation"",""annoy_lackoftime"",""annoy_docsize"",""annoy_description"",""attitude_before"",""attitude_now"",""attitude_description"",""focus_self"",""focus_professor"",""course_n"",""course_type"",""act_type"",""act"",""act_source"",""act_source_other"",""willingness"",""willingness_other"",""school"",""school_type"",""grade"",""grade_other"",""gender"",""cram_school"",""cram_spend"",""cram_subject"",""email"",""55"",""56"",""57"",""58"",""59"",""60"",""61"",""62"",""63"")"
+"0","#rename"
+"0","names(q_raw) <- c(""spend_time"",""n_learning"",""n_performance"",""app"",""app_other"",""freq_teacher"",""freq_student"",""freq_parent"",""freq_cram"",""help_teacher"",""help_student"",""help_parent"",""help_cram"",""heard_agency"",""use_agency"",""agg_overral"",""agg_feature"",""agg_quality"",""agg_outoftest"",""agg_future"",""agg_description"",""edge_course"",""edge_act"",""edge_future"",""edge_art"",""edge_outoftest"",""annoy_overral"",""annoy_time"",""annoy_orientation"",""annoy_lackoftime"",""annoy_docsize"",""annoy_description"",""attitude_before"",""attitude_now"",""attitude_description"",""focus_self"",""focus_professor"",""course_n"",""course_type"",""act_type"",""act"",""act_source"",""act_source_other"",""willingness"",""willingness_other"",""school"",""school_type"",""grade"",""grade_other"",""gender"",""cram_school"",""cram_spend"",""cram_subject"",""email"",""55"",""56"",""57"",""58"",""59"",""60"",""61"",""62"",""63"")"
+"0","#這段是改欄位名"
+"0","clean_df <-q_raw %>%"
+"0","    select(spend_time:cram_subject)%>%"
+"0","    filter(!str_detect(school,""大學""))%>%"
+"0","    mutate(id=row_number())%>%"
+"0","    relocate(id)%>%"
+"0","    mutate(app=if_else(app==""其他"",app_other,app),"
+"0","           act_source=if_else(act_source==""其他"",act_source_other,act_source),"
+"0","           willingness=if_else(willingness==""其他"",willingness_other,willingness)"
+"0","           )%>%"
+"0","    select(-c(app_other,act_source_other,willingness_other,grade_other))"
