@@ -417,7 +417,7 @@ p_agg <- likert.heat.plot(p_agg, low.color = "white", high.color = "#FB8500" ,
     my_theme_heat
 p_agg
 
-#沒有明顯差異
+#刪沒有明顯差異
 #年級對照圖：不同年級對學習歷程檔案優點的認同程度
 #p_age_agg <- likert(item_agg, grouping = clean_df$grade)
 #plot(p_age_annoy) + ggtitle("不同年級對學習歷程檔案優點的認同程度")
@@ -467,7 +467,7 @@ p_annoy <- likert.heat.plot(p_annoy, low.color = "white", high.color = "#FB8500"
     my_theme_heat
 p_annoy
 
-#沒有明顯差異
+#刪沒有明顯差異
 #年級對照圖：不同年級對學習歷程檔案缺點的困擾程度
 #p_age_annoy <- likert(item_annoy, grouping = clean_df$grade)
 #plot(p_age_annoy) + ggtitle("不同年級對學習歷程檔案缺點的困擾程度")
@@ -515,7 +515,7 @@ p_edge <- likert.heat.plot(p_edge, low.color = "white", high.color = "#FB8500" ,
     my_theme_heat
 p_edge
 
-#沒有明顯差異
+#刪沒有明顯差異
 #年級對照圖：不同年級對學習歷程檔案展現個人優勢的認同程度
 #p_age_edge <- likert(item_edge, grouping = clean_df$grade)
 #plot(p_age_edge) + ggtitle("不同年級對學習歷程檔案展現個人優勢的認同程度")
