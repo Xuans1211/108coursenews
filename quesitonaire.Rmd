@@ -167,3 +167,191 @@ dev.set(dev.next())
 ggarrange(g1,g2,g3,ncol = 2, nrow = 2)
 
 ```
+
+#spend_time
+```{r}
+g3<-act_df%>%
+    filter(grade=="三年級")%>%
+    group_by(act_type)%>%
+    mutate(act_type=factor(act_type,levels=c("參加社團","參加競賽","考證照","參加營隊","技藝補習","其他")))%>%
+    summarise(total_n=sum(n))%>%
+    mutate(per=round(total_n/sum(total_n),2))%>%
+    mutate(per_n=str_c(per*100,"%"))%>%
+    ggplot()+aes(x=act_type,y=per,fill=act_type)+
+    geom_col(position=position_dodge(),width=0.7)+
+    geom_text(aes(label=per_n),size=10,vjust=-0.5)+
+    my_theme+
+    scale_y_continuous(expand = expansion(mult = c(0, 0.2)))+
+    scale_fill_manual(values=c("#023047","#023047","#023047","#023047","#023047","#023047"))+
+    labs(title="高三生額外參與的課外活動類型",
+            x=NULL,
+            y="該年級參與此活動比例(%)")+
+    theme(
+        axis.title=element_text(size=20),
+        axis.text.x=element_text(size=20,color="black"),
+        axis.title.y=element_text(vjust=3),
+        axis.text.y=element_blank())
+
+b1<-clean_df%>%
+    select(spend_time)%>%
+    group_by(spend_time)%>%
+    summarise(spend_time=factor(spend_time,levels=c("1小時以下","1~2小時","2~3小時","3~4小時","4小時以上")))%>%
+    count()%>%
+    ungroup()%>%
+    mutate(per=round(n/sum(n),2))%>%
+    mutate(per_n=str_c(per*100,"%"))
+    
+#mutate(比例=paste(round(人數/sum(人數)*100,2),"%"))
+
+#b1$spend_time <- factor(b1$spend_time,levels=c("1小時以下","1~2小時","2~3小時","3~4小時","4小時以上"))
+
+t1<-b1 %>%
+   ggplot()+ aes(x=spend_time,y=per,fill=spend_time) +
+  geom_col(position=position_dodge(),width=0.7)+
+    geom_text(aes(label=per_n),size=10,vjust=-0.5)+
+    my_theme+
+    scale_y_continuous(expand = expansion(mult = c(0, 0.2)))+
+    scale_fill_manual(values=c("#8ECAE6","#8ECAE6","#8ECAE6","#8ECAE6","#8ECAE6"))+
+    labs(title="高中生一週花多少時間製作學習歷程檔案？",
+            x=NULL,
+            y="製作時間人數比例(%)")+theme(plot.title = element_text(size = 45),
+                   axis.title=element_text(size=30),
+                   axis.text.x = element_text(size=30,color="black"),
+                   axis.text.y=element_blank(),
+                   axis.title.y=element_text(vjust=3))
+t1
+
+```
+#n_leaning&n_performance
+```{r}
+l1<-clean_df%>%
+    select(n_learning)%>%
+    count(n_learning)%>%
+    mutate(group="學習成果",
+           case=n_learning)%>%
+    select(n,group,case)
+
+p1<-clean_df%>%
+    select(n_performance)%>%
+    count(n_performance)%>%
+    mutate(group="多元表現",
+           case=n_performance)%>%
+    select(n,group,case)    
+a1<-rbind(l1,p1)
+t3<-a1%>%
+    group_by(case)%>%
+    ggplot()+aes(x=case,y=n,fill=group)%>%
+    geom_col(width=0.7)+scale_y_continuous(expand = expansion(mult = c(0, 0.05)))+
+    scale_fill_manual(values=c("#023047","#FFB703"),
+                      labels=c("多元表現    ",
+                             "學習成果"))+
+    labs(title="高中生每學期平均上傳多少份學習歷程檔案？",
+            x=NULL,
+            y="人數")+
+    my_theme+theme(legend.position = "top",
+                   plot.title = element_text(size = 45),
+                   axis.text.y =element_text(size = 30,color="black"),
+                   legend.text = element_text(size = 30),
+                   legend.key.size = unit(1,"cm"),
+                   axis.title=element_text(size=30),
+                   axis.text.x = element_text(size=30,color="black"),
+                   axis.title.y=element_text(vjust=3))+
+    guides(fill=guide_legend(title = NULL))
+
+t3
+    
+```
+#誰幫你&Ta幫了你什麼
+```{r}
+clean_df%>%
+    select(id,freq_parent,freq_cram,freq_student,freq_teacher,help_teacher,help_cram,help_student,help_parent)%>%
+    filter(freq_teacher%in%c("時常討論","偶爾討論")|freq_student%in%c("時常討論","偶爾討論")|freq_parent%in%c("時常討論","偶爾討論")|freq_cram%in%c("時常討論","偶爾討論"))
+
+h1<-clean_df%>%
+    filter(freq_student%in%c("時常討論","偶爾討論"))%>%
+    select(id,help_student,freq_student)%>%
+    mutate(圖文排版=str_detect(help_student,"圖文排版"),撰寫內容=str_detect(help_student,"撰寫內容"),
+        整體架構及方向=str_detect(help_student,"整體架構及方向"),
+        美編及插圖=str_detect(help_student,"美編及插圖"),
+        沒有幫助過=str_detect(help_student,"沒有幫助過"),其他=str_detect(help_student,"其他"))%>%
+    gather(help_student,n,圖文排版,整體架構及方向,撰寫內容,美編及插圖,沒有幫助過,其他)%>%
+    filter(n=="TRUE")%>%
+    group_by(help_student)%>%
+    count()%>%
+    ungroup()%>%
+    mutate(who_help="同學",
+           help_what=help_student,
+           per=n/sum(n))%>%
+    select(n,who_help,help_what,per)
+
+h2<-clean_df%>%
+    filter(freq_teacher%in%c("時常討論","偶爾討論"))%>%
+    select(id,help_teacher,freq_teacher)%>%
+    mutate(圖文排版=str_detect(help_teacher,"圖文排版"),撰寫內容=str_detect(help_teacher,"撰寫內容"),
+        整體架構及方向=str_detect(help_teacher,"整體架構及方向"),
+        美編及插圖=str_detect(help_teacher,"美編及插圖"),
+        沒有幫助過=str_detect(help_teacher,"沒有幫助過"),其他=str_detect(help_teacher,"其他"))%>%
+    gather(help_teacher,n,圖文排版,整體架構及方向,撰寫內容,美編及插圖,沒有幫助過,其他)%>%
+    filter(n=="TRUE")%>%
+    group_by(help_teacher)%>%
+    count()%>%
+    ungroup()%>%
+    mutate(who_help="老師",
+           help_what=help_teacher,
+           per=n/sum(n))%>%
+    select(n,who_help,help_what,per)
+
+h3<-clean_df%>%
+    filter(freq_parent%in%c("時常討論","偶爾討論"))%>%
+    select(id,help_parent,freq_parent)%>%
+    mutate(圖文排版=str_detect(help_parent,"圖文排版"),撰寫內容=str_detect(help_parent,"撰寫內容"),
+        整體架構及方向=str_detect(help_parent,"整體架構及方向"),
+        美編及插圖=str_detect(help_parent,"美編及插圖"),
+        沒有幫助過=str_detect(help_parent,"沒有幫助過"),其他=str_detect(help_parent,"其他"))%>%
+    gather(help_parent,n,圖文排版,整體架構及方向,撰寫內容,美編及插圖,沒有幫助過,其他)%>%
+    filter(n=="TRUE")%>%
+    group_by(help_parent)%>%
+    count()%>%
+    ungroup()%>%
+    mutate(who_help="父母",
+           help_what=help_parent,
+           per=n/sum(n))%>%
+    select(n,who_help,help_what,per)
+
+q2<-rbind(h1,h2,h3)
+q2$help_what<- factor(q2$help_what,levels=c("整體架構及方向","撰寫內容","圖文排版","美編及插圖","其他","沒有幫助過"))
+
+t4<-q2%>%
+    select(help_what,who_help,n,per)%>%
+    filter(help_what%in%c("圖文排版","撰寫內容","整體架構及方向","美編及插圖"))%>%
+    group_by(who_help)%>%
+    ungroup()%>%
+    mutate(who_help=reorder(who_help,n))%>%
+    ggplot()+aes(x=who_help,y=n,fill=help_what)%>%
+    geom_col(width=0.7)+
+    coord_flip()+scale_y_continuous(expand = expansion(mult = c(0, 0.05)))+
+    scale_fill_manual(values=c(美編及插圖="#219EBC",圖文排版="#FB8500",撰寫內容="#FFB703",整體架構及方向="#023047"),
+    labels=c("美編及插圖    ",
+                             "圖文排版    ",
+                             "撰寫內容    ",
+                             "整體架構及方向"))+
+#scale_fill_manual(values=c("#219EBC","#FB8500","#FFB703","#023047"))+
+    labs(title="誰最常幫助高中生，又幫了什麼？",
+            x=NULL,
+            y="人次")+
+    my_theme+theme(legend.position = "top",
+                   plot.title = element_text(size = 45),
+                   axis.title.x = element_text(size=30,color="black"),
+                   axis.text.y =element_text(size = 30,color="black"),
+                   legend.text = element_text(size = 30),
+                   legend.key.size = unit(1,"cm"),
+                   #legend.spacing.x = unit(0.5, 'cm')
+                   axis.title=element_text(size=30),
+                   axis.text.x = element_text(size=30,color="black"),
+                   axis.title.y=element_text(vjust=3)
+                   )+
+    guides(fill=guide_legend(title = NULL))
+   
+t4
+```
+
