@@ -62,7 +62,38 @@ my_theme<-theme(
     axis.ticks = element_blank(),
     axis.line.x = element_line(colour = "black",size=2),
     plot.background = element_rect(colour = "black", fill=NA, size=3)
-    
+)
+
+my_theme_heat <- theme(
+    text = element_text(family="source-han-sans-tw", size = 15),
+    plot.margin = margin(2, 2, 2, 2,"cm"),
+    legend.position = "none",
+    plot.title= element_text(hjust=4.5,vjust=4,face="bold",size=32),
+    plot.caption = element_text(hjust=1,vjust=-4.5,face="bold",size=18),
+    panel.grid.major = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_text(size=15),
+    axis.text.x = element_text(margin=margin(t=15), size=15),
+    axis.text.y = element_text(margin=margin(r=15), size=18),
+    axis.ticks = element_blank(),
+    axis.line.x = element_line(colour = "black",size=2),
+    plot.background = element_rect(colour = "black", fill=NA, size=3)
+)
+
+my_theme_bar <- theme(
+    text = element_text(family="source-han-sans-tw", size = 15),
+    plot.margin = margin(2, 2, 2, 2,"cm"),
+    legend.position = "none",
+    plot.title= element_text(hjust=1,vjust=4,face="bold",size=32),
+    plot.caption = element_text(hjust=1,vjust=-4.5,face="bold",size=18),
+    panel.grid.major = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_text(size=15),
+    axis.text.x = element_text(margin=margin(t=15), size=12),
+    axis.text.y = element_text(margin=margin(r=15), size=12),
+    axis.ticks = element_blank(),
+    axis.line.x = element_line(colour = "black",size=2),
+    plot.background = element_rect(colour = "black", fill=NA, size=3)
 )
 
 #要套模板的時候，假設你的是圖表名稱是plot
@@ -355,3 +386,144 @@ t4<-q2%>%
 t4
 ```
 
+#attitude Subjects 
+####學習歷程檔案態度－優點
+```{r}
+library(likert)
+data(clean_df) 
+item_agg <- clean_df %>% 
+  select(matches("agg_")) %>% 
+  select(-agg_description) %>% 
+  rename(整體幫助程度 = agg_overral,
+         展現個人特色及學習軌跡 = agg_feature,
+         提升未來的備審資料品質 = agg_quality,
+         呈現考試外的學習成果 = agg_outoftest,
+         幫助學生探索生涯及未來定向 = agg_future,
+         ) %>%
+  mutate(across(everything(), ~as_factor(.) %>% 
+  fct_relevel(c("非常不同意","不同意","普通","同意","非常同意")))) %>%
+  as.data.frame() 
+  clean_df_group <- clean_df %>% 
+  mutate(annoyed_group = if_else(annoy_overral == "很多困擾"|annoy_overral == "有點困擾", "困擾者", "不困擾者"),
+         attitude_group = if_else(attitude_now == "非常排斥"|attitude_now == "排斥", "排斥者", "不排斥者"))
+
+#整體對學習歷程檔案優點的認同程度
+p_agg <- likert(item_agg)
+p_agg <- likert.heat.plot(p_agg, low.color = "white", high.color = "#FB8500" ,
+                 text.color = "black", text.size = 6, wrap = 50) +
+    labs(title="高中生對學習歷程檔案優點的認同程度",
+            x=NULL,
+            y=NULL) +
+    my_theme_heat
+
+#沒有明顯差異
+#年級對照圖：不同年級對學習歷程檔案優點的認同程度
+#p_age_agg <- likert(item_agg, grouping = clean_df$grade)
+#plot(p_age_annoy) + ggtitle("不同年級對學習歷程檔案優點的認同程度")
+
+#分組對照圖：排斥者與不排斥者對學習歷程檔案優點的認同程度
+p_attitude_agg <- likert(item_agg, grouping = clean_df_group$attitude_group)
+p_attitude_agg <- plot(p_attitude_agg,        
+     colors=c('#FB8500','#FFB703','#8ECAE6','#219EBC','#023047'),
+     legend.position = "bottom",
+     legend = "",
+     text.size = 5) +
+     labs(title="學習歷程檔案排斥與不排斥者對其優點的認同程度",
+            x=NULL,
+            y=NULL) +
+     my_theme_bar
+```
+
+####學習歷程檔案態度－缺點
+```{r}
+library(likert)
+data(clean_df) 
+item_annoy <- clean_df %>% 
+  select(matches("annoy_")) %>% 
+  select(-annoy_description) %>% 
+  rename(整體困擾程度 = annoy_overral,
+         需要花很多時間跟精力 = annoy_time,
+         製作方向不清楚 = annoy_orientation,
+         準備時間不夠 = annoy_lackoftime,
+         上傳檔案有限制 = annoy_docsize,
+         ) %>%
+  mutate(across(everything(), ~as_factor(.) %>% 
+  fct_relevel(c("幾乎沒有困擾","很少困擾","普通","有點困擾","很多困擾")))) %>%
+  as.data.frame() 
+
+  clean_df_group <- clean_df %>% 
+  mutate(annoyed_group = if_else(annoy_overral == "很多困擾"|annoy_overral == "有點困擾", "困擾者", "不困擾者"),
+         attitude_group = if_else(attitude_now == "非常排斥"|attitude_now == "排斥", "排斥者", "不排斥者")) 
+  
+#整體對學習歷程檔案優點的困擾程度
+p_annoy <- likert(item_annoy)
+p_annoy <- likert.heat.plot(p_annoy, low.color = "white", high.color = "#FB8500" ,
+                 text.color = "black", text.size = 6, wrap = 50) +
+    labs(title="高中生對學習歷程檔案缺點的困擾程度",
+            x=NULL,
+            y=NULL) +
+    my_theme_heat
+
+#沒有明顯差異
+#年級對照圖：不同年級對學習歷程檔案缺點的困擾程度
+#p_age_annoy <- likert(item_annoy, grouping = clean_df$grade)
+#plot(p_age_annoy) + ggtitle("不同年級對學習歷程檔案缺點的困擾程度")
+
+#分組對照圖：排斥者與不排斥者對學習歷程檔案缺點的困擾程度
+p_attitude_annoy <- likert(item_annoy, grouping = clean_df_group$attitude_group)
+p_attitude_annoy <- plot(p_attitude_annoy,        
+     colors=c('#FB8500','#FFB703','#8ECAE6','#219EBC','#023047'),
+     legend.position = "bottom",
+     legend = "",
+     text.size = 5) +
+     labs(title="學習歷程檔案排斥與不排斥者對其缺點的困擾程度",
+            x=NULL,
+            y=NULL) +
+     my_theme_bar
+```
+
+####學習歷程檔案態度－個人優勢
+```{r}
+library(likert)
+data(clean_df) 
+item_edge <- clean_df %>% 
+  select(matches("edge_")) %>% 
+  rename(課程學習成果豐富 = edge_course,
+         課外競賽或活動經驗豐富 = edge_act,
+         生涯及未來定向清楚 = edge_future,
+         美編排版能力佳 = edge_art,
+         呈現考試以外的優點或特色 = edge_outoftest,
+         ) %>%
+  mutate(across(everything(), ~as_factor(.) %>% 
+  fct_relevel(c("非常不同意","不同意","普通","同意","非常同意")))) %>%
+  as.data.frame() 
+  clean_df_group <- clean_df %>% 
+  mutate(annoyed_group = if_else(annoy_overral == "很多困擾"|annoy_overral == "有點困擾", "困擾者", "不困擾者"),
+         attitude_group = if_else(attitude_now == "非常排斥"|attitude_now == "排斥", "排斥者", "不排斥者"))
+
+#整體對學習歷程檔案展現個人優勢的認同程度
+p_edge <- likert(item_edge)
+p_edge <- likert.heat.plot(p_edge, low.color = "white", high.color = "#FB8500" ,
+                 text.color = "black", text.size = 6, wrap = 50) +
+    labs(title="高中生對學習歷程檔案展現個人優勢的認同程度",
+            x=NULL,
+            y=NULL) +
+    my_theme_heat
+
+#沒有明顯差異
+#年級對照圖：不同年級對學習歷程檔案展現個人優勢的認同程度
+#p_age_edge <- likert(item_edge, grouping = clean_df$grade)
+#plot(p_age_edge) + ggtitle("不同年級對學習歷程檔案展現個人優勢的認同程度")
+
+#分組對照圖：排斥者與不排斥者對學習歷程檔案展現個人優勢的認同程度
+p_attitude_edge <- likert(item_edge, grouping = clean_df_group$attitude_group)
+p_attitude_edge <- plot(p_attitude_edge,        
+     colors=c('#FB8500','#FFB703','#8ECAE6','#219EBC','#023047'),
+     legend.position = "bottom",
+     legend = "",
+     text.size = 5) +
+     labs(title="學習歷程檔案排斥者與不排斥者對其展現個人優勢的認同程度",
+            x=NULL,
+            y=NULL) +
+     my_theme_bar
+```
