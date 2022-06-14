@@ -409,7 +409,7 @@ item_agg <- clean_df %>%
 
 #整體對學習歷程檔案優點的認同程度
 p_agg <- likert(item_agg)
-p_agg <- likert.heat.plot(p_agg, low.color = "white", high.color = "#FB8500" ,
+p_agg <- likert.heat.plot(p_agg, low.color = "white", high.color = "#219EBC" ,
                  text.color = "black", text.size = 6, wrap = 50) +
     labs(title="高中生對學習歷程檔案優點的認同程度",
             x=NULL,
@@ -457,9 +457,9 @@ item_annoy <- clean_df %>%
   mutate(annoyed_group = if_else(annoy_overral == "很多困擾"|annoy_overral == "有點困擾", "困擾者", "不困擾者"),
          attitude_group = if_else(attitude_now == "非常排斥"|attitude_now == "排斥", "排斥者", "不排斥者")) 
   
-#整體對學習歷程檔案優點的困擾程度
+#整體對學習歷程檔案缺點的困擾程度
 p_annoy <- likert(item_annoy)
-p_annoy <- likert.heat.plot(p_annoy, low.color = "white", high.color = "#FB8500" ,
+p_annoy <- likert.heat.plot(p_annoy, low.color = "white", high.color = "#219EBC" ,
                  text.color = "black", text.size = 6, wrap = 50) +
     labs(title="高中生對學習歷程檔案缺點的困擾程度",
             x=NULL,
@@ -507,7 +507,7 @@ item_edge <- clean_df %>%
 
 #整體對學習歷程檔案展現個人優勢的認同程度
 p_edge <- likert(item_edge)
-p_edge <- likert.heat.plot(p_edge, low.color = "white", high.color = "#FB8500" ,
+p_edge <- likert.heat.plot(p_edge, low.color = "white", high.color = "#219EBC" ,
                  text.color = "black", text.size = 6, wrap = 50) +
     labs(title="高中生對學習歷程檔案展現個人優勢的認同程度",
             x=NULL,
