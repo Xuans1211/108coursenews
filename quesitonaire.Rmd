@@ -190,38 +190,38 @@ g3<-act_df%>%
 
 g3
 
+g_total<-act_df%>%
+    group_by(act_type,grade)%>%
+    mutate(act_type=factor(act_type,levels=c("參加社團","參加競賽","考證照","參加營隊","技藝補習","其他")))%>%
+    summarise(total_n=sum(n))%>%
+    ungroup()%>%
+    group_by(grade)%>%
+    mutate(per=round(total_n/sum(total_n),2))%>%
+    mutate(per_n=str_c(per*100,"%"))%>%
+    ggplot()+aes(x=act_type,y=per,fill=grade)+
+    geom_col(position=position_dodge(),width=0.7)+
+    geom_text(aes(label=per_n),size=5,vjust=-0.5,position = position_dodge(width=0.7))+
+    my_theme+
+    scale_y_continuous(expand = expansion(mult = c(0, 0.2)))+
+    scale_fill_manual(values=c("一年級"="#8ECAE6","二年級"="#219EBC","三年級"="#023047"))+
+    labs(title="高中生額外參與的課外活動類型",
+            x=NULL,
+            y="該年級參與此活動比例(%)")+
+    theme(
+        legend.position = "top",
+        legend.text = element_text(size=12),
+        legend.title = element_blank(),
+        axis.title=element_text(size=20),
+        axis.text.x=element_text(size=20,color="black"),
+        axis.title.y=element_text(vjust=3),
+        axis.text.y=element_blank())
 
-png(filename = "g3.png",width=1200,height = 1000,units = "px",res = 300)
-g3
-while (!is.null(dev.list()))  dev.off()
-dev.set(dev.next())
-ggarrange(g1,g2,g3,ncol = 2, nrow = 2)
+g_total
 
 ```
 
 #spend_time
 ```{r}
-g3<-act_df%>%
-    filter(grade=="三年級")%>%
-    group_by(act_type)%>%
-    mutate(act_type=factor(act_type,levels=c("參加社團","參加競賽","考證照","參加營隊","技藝補習","其他")))%>%
-    summarise(total_n=sum(n))%>%
-    mutate(per=round(total_n/sum(total_n),2))%>%
-    mutate(per_n=str_c(per*100,"%"))%>%
-    ggplot()+aes(x=act_type,y=per,fill=act_type)+
-    geom_col(position=position_dodge(),width=0.7)+
-    geom_text(aes(label=per_n),size=10,vjust=-0.5)+
-    my_theme+
-    scale_y_continuous(expand = expansion(mult = c(0, 0.2)))+
-    scale_fill_manual(values=c("#023047","#023047","#023047","#023047","#023047","#023047"))+
-    labs(title="高三生額外參與的課外活動類型",
-            x=NULL,
-            y="該年級參與此活動比例(%)")+
-    theme(
-        axis.title=element_text(size=20),
-        axis.text.x=element_text(size=20,color="black"),
-        axis.title.y=element_text(vjust=3),
-        axis.text.y=element_blank())
 
 b1<-clean_df%>%
     select(spend_time)%>%
